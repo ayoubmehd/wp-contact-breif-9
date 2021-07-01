@@ -166,13 +166,28 @@ function wp_contact_breif_9_admin_page_show_contacts()
     $table = $wpdb->prefix . 'contact';
     $limit = isset($_GET["limit"]) ? $_GET["limit"] : 10;
     $pageNumber = isset($_GET["page_number"]) ? $_GET["page_number"] : 1;
+    $sql = "SELECT `id`, `name`, `email`, `subject`, `content` FROM `$table` LIMIT %d OFFSET %d";
     $contacts =
-        $wpdb->query(
+        $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT `name`, `email`, `subject`, `content` FROM `$table` LIMIT ? OFFSET ?",
+                $sql,
                 [$limit, ($limit * $pageNumber) - $limit]
             )
         );
+
+    if (isset($_GET["action"])) {
+        $action = $_GET["action"];
+        if ($action === "delete") {
+            $contact_id = isset($_GET["id"]) ? $_GET["id"] : null;
+
+            if ($contact_id) {
+                $wpdb->delete($table, ["id" => $contact_id], ["%d"]);
+            }
+            $current_url = remove_query_arg(["action", "id"], home_url($_SERVER["REQUEST_URI"]));
+            wp_redirect($current_url, 301);
+            exit();
+        }
+    }
 ?>
     <div class="wrap">
         <h3>Show contacts</h3>
@@ -181,49 +196,53 @@ function wp_contact_breif_9_admin_page_show_contacts()
                 <tr>
                     <td id="cb" class="manage-column column-cb check-column"></td>
                     <th scope="col" id="title" class="manage-column column-title column-primary sortable desc">Name</th>
-                    <th scope="col" id="title" class="manage-column column-title column-primary sortable desc">Email From</th>
+                    <th scope="col" id="title" class="manage-column column-title column-primary sortable desc">User Email</th>
                     <th scope="col" id="author" class="manage-column column-author">Subject</th>
                     <th scope="col" id="categories" class="manage-column column-categories">Content</th>
-                    <th scope="col" id="categories" class="manage-column column-categories">Actions</th>
                 </tr>
             </thead>
 
             <tbody id="the-list">
-                <?php //foreach ($contacts as $key => $contact) : 
-                ?>
-                <?php
+                <?php foreach ($contacts as $key => $contact) : ?>
 
-                var_dump($contacts);
-                ?>
-                <tr id="post-<?php echo $key ?>" class="iedit author-self level-0 post-<?php echo $key ?> type-post status-publish format-standard hentry category-uncategorized entry">
+                    <tr id="post-<?php echo $key ?>" class="iedit author-self level-0 post-<?php echo $key ?> type-post status-publish format-standard hentry category-uncategorized entry">
 
-                    <td class="column-primary" data-colname="Title">
-                    </td>
-                    <td class="column-primary" data-colname="Title">
-                    </td>
-                    <td class="column-primary" data-colname="Title">
-                    </td>
-                    <td class="column-primary" data-colname="Title">
-                    </td>
-                    <td class="column-primary" data-colname="Title">
-                    </td>
-                    <td class="column-primary" data-colname="Title">
-                    </td>
+                        <td class="column-primary" data-colname="Title">
 
-                </tr>
-                <?php // endforeach; 
-                ?>
+                        </td>
+                        <td class="column-primary" data-colname="Title">
+                            <?php echo $contact->name ?>
+                            <div class="row-actions">
+                                <a href="<?php  ?>" aria-label="Replay To <?php echo $contact->subject ?>">
+                                    replay
+                                </a> |
+                                <span class="trash">
+                                    <a href="<?php echo home_url($_SERVER["REQUEST_URI"]) ?>&action=delete&id=<?php echo $contact->id ?>" class="submitdelete" aria-label="Delete <?php echo $contact->subject ?>">
+                                        delete
+                                    </a>
+                                </span>
+                            </div>
+                        </td>
+                        <td class="column-primary" data-colname="Title">
+                            <?php echo $contact->email ?>
+                        </td>
+                        <td class="column-primary" data-colname="Title">
+                            <?php echo $contact->subject ?>
+                        </td>
+                        <td class="column-primary" data-colname="Title">
+                            <?php echo substr($contact->content, 0, 140) ?>...
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
             </tbody>
 
             <tfoot>
                 <tr>
                     <td class="manage-column column-cb check-column"></td>
                     <th scope="col" class="manage-column column-title column-primary sortable desc">Name</th>
-                    <th scope="col" class="manage-column column-author">Email From</th>
+                    <th scope="col" class="manage-column column-author">User Email</th>
                     <th scope="col" class="manage-column column-categories">Subject</th>
                     <th scope="col" class="manage-column column-tags">Content</th>
-                    <th scope="col" class="manage-column column-comments num sortable desc">Actions</th>
-
                 </tr>
             </tfoot>
 

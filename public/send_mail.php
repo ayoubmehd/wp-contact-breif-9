@@ -22,6 +22,6 @@ function wp_contact_breif_9()
 
     // Redirect after submit
     $options = get_option('wp_contact_breif_9_options', false);
-    $wpdb->wp_redirect(home_url('/' . $options ? $options["thank_you_page"] : "thank-you"), 301); // Customize your thank you page
+    wp_redirect(home_url('/' . $options ? $options["thank_you_page"] : "thank-you"), 301); // Customize your thank you page
     exit();
 }
